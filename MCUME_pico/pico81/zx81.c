@@ -1,6 +1,7 @@
 
 #define PROGMEM
-#include "z80.h"
+#include <string.h>
+#include "Z80.h"
 //#include "Arduino.h"
 #include "zx80rom.h"
 #include "zx81rom.h"

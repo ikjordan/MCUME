@@ -311,8 +311,8 @@ set(TESTPSRAM_SOURCES
 add_executable(mcume
 #		${GFXENGINE_SOURCES}
 #		${PICO20_SOURCES}
-		${PICO64_SOURCES}
-#		${PICO81_SOURCES}
+#		${PICO64_SOURCES}
+		${PICO81_SOURCES}
 #		${PICO800_SOURCES}
 #		${PICO5200_SOURCES}
 #		${PICO8086_SOURCES}
@@ -330,7 +330,7 @@ add_executable(mcume
 #		${PSRAM_SOURCES}
 #		${VGA_T4_SOURCES}
 		${PICOVGA_T4_SOURCES}
-		${TFT_T_SOURCES}
+#		${TFT_T_SOURCES}
 	)
 
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/timing.pio)
@@ -356,7 +356,7 @@ ENDIF()
 target_compile_definitions(mcume PUBLIC N_SD_CARDS=${N_SD_CARDS})
 
 
-#pico_enable_stdio_uart(mcume 0)
+pico_enable_stdio_uart(mcume 1)
 #pico_enable_stdio_usb(mcume 0)
 
 pico_add_extra_outputs(mcume)
