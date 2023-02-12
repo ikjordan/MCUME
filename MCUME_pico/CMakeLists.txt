@@ -21,6 +21,7 @@ include_directories(vga_t4)
 #include_directories(picovga_t4)
 include_directories(tft_t)
 include_directories(psram)
+include_directories(picousb)
 
 
 set(PICO81_SOURCES 
@@ -286,6 +287,16 @@ set(GFXENGINE_SOURCES
 		gfxengine/gfxengine.cpp
 	)
 
+set (PICOUSB_SOURCES
+		picousb/cdc_app.c
+		picousb/hid_app.c
+		picousb/hid_host_info.c
+		picousb/hid_host_joy.c
+		picousb/hid_host_utils.c
+		picousb/hid_ri.c
+		picousb/hid_rip.c
+)
+
 set(TESTIO_SOURCES 
 		testio/testio.cpp
 		testio/emuapi.cpp
@@ -330,6 +341,7 @@ add_executable(mcume
 #		${PSRAM_SOURCES}
 #		${VGA_T4_SOURCES}
 		${PICOVGA_T4_SOURCES}
+		${PICOUSB_SOURCES}
 #		${TFT_T_SOURCES}
 	)
 
@@ -344,9 +356,10 @@ target_link_libraries(mcume pico_multicore
 #	    pico_scanvideo_dpi
 	    hardware_adc
 	    hardware_pio
-        hardware_pwm	    
+        hardware_pwm
+        tinyusb_host
+        tinyusb_board
 	)
-
 
 #target_compile_options(mcume PUBLIC -O3)
 #target_compile_options(mcume PUBLIC -Wall -Wextra -Wno-unused-function -Wno-unused-parameter)
@@ -357,6 +370,6 @@ target_compile_definitions(mcume PUBLIC N_SD_CARDS=${N_SD_CARDS})
 
 
 pico_enable_stdio_uart(mcume 1)
-#pico_enable_stdio_usb(mcume 0)
+pico_enable_stdio_usb(mcume 0)
 
 pico_add_extra_outputs(mcume)
