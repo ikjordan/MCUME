@@ -19,6 +19,10 @@
 #include "VGA_font8x8.h"
 #include "include.h"
 
+#ifdef B16    // Clash with bit definitions
+#undef B16
+#endif
+
 #define R16(rgb) ((rgb>>8)&0xf8) 
 #define G16(rgb) ((rgb>>3)&0xfc) 
 #define B16(rgb) ((rgb<<3)&0xf8) 
