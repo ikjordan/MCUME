@@ -77,23 +77,20 @@ void hid_app_get_latest_keyboard_report(hid_keyboard_report_t* latest)
   }
 }
 
-void hid_app_get_latest_joystick_state(joystick_state_t* latest, int* num)
+bool hid_app_get_latest_joystick_state(joystick_state_t* latest, int num)
 {
+  bool bRet = false;
   tusb_hid_simple_joystick_t* simple_joysticks[2];
 
-  // Clear both values
-  for (int i=0; i<2; ++i)
-  {
-    latest[i].ud = 0;
-    latest[i].lr = 0;
-    latest[i].button = 0;
-  }
-  
   int detected = tuh_hid_get_simple_joysticks(simple_joysticks, 2);
-  *num = detected;
-
-  for (int i=0; i<detected; ++i)
+  if (num > 0 && num <= detected)
   {
+    int i = num - 1;
+
+    latest->ud = 0;
+    latest->lr = 0;
+    latest->button = 0;
+
     // Determine: 
     // up /down /centre
     // left / right / centre
@@ -123,7 +120,9 @@ void hid_app_get_latest_joystick_state(joystick_state_t* latest, int* num)
     {
       latest[i].button = MASK_JOY_BTN;
     }
+    bRet = true;
   }
+  return bRet;
 }
 
 //--------------------------------------------------------------------+

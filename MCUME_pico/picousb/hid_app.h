@@ -18,7 +18,7 @@ typedef struct {
 extern "C" {
 #endif
 void hid_app_get_latest_keyboard_report(hid_keyboard_report_t* latest);
-void hid_app_get_latest_joystick_state(joystick_state_t* latest, int* num);
+bool hid_app_get_latest_joystick_state(joystick_state_t* latest, int num);
 
 // Test interface
 void hid_app_print_keys(void);

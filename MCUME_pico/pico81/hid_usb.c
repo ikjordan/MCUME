@@ -166,9 +166,16 @@ void readUsbKeyboard(void)
     }
 }
 
-void menu_joystick()
+int16_t readUsbJoystick(int instance)
 {
+    int16_t result = 0;
+    joystick_state_t report;
 
+    if (hid_app_get_latest_joystick_state(&report, instance))
+    {
+        result = report.button + report.lr + report.ud;
+    }
+    return result;
 }
 
 

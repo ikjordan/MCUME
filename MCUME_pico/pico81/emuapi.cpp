@@ -8,6 +8,7 @@
 #ifdef USB_HID
 #include "bsp/board.h"
 #include "tusb.h"
+#include "hid_usb.h"
 #endif
 
 #include <stdio.h>
@@ -440,7 +441,10 @@ int emu_ReadKeys(void)
   uint16_t retval;
   uint16_t j1 = readAnalogJoystick();
   uint16_t j2 = 0;
-  
+
+#ifdef USB_HID
+  j1 |= readUsbJoystick(1);
+#endif
   // Second joystick
 #if INVY
 #ifdef PIN_JOY1_1
