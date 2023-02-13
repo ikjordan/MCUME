@@ -27,6 +27,7 @@
 #include "tusb.h"
 #include "hid_host_joy.h"
 #include "hid_host_info.h"
+#include "hid_app.h"
 
 //--------------------------------------------------------------------+
 // MACRO TYPEDEF CONSTANT ENUM DECLARATION
@@ -37,8 +38,6 @@
 #define USE_ANSI_ESCAPE   0
 
 #define MAX_REPORT  4
-
-static uint8_t const keycode2ascii[128][2] =  { HID_KEYCODE_TO_ASCII };
 
 void process_kbd_mount(uint8_t dev_addr, uint8_t instance)
 {
@@ -61,78 +60,76 @@ static void process_kbd_report(hid_keyboard_report_t const *report);
 static void process_mouse_report(hid_mouse_report_t const * report);
 static void process_generic_report(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len);
 
-typedef struct {
-  char* ud;
-  char* lr;
-  char* fire;
-} joysick_state_t;
+static int keyboard_index = 0;
+static hid_keyboard_report_t keyboard_report[2];
 
-void hid_app_task(void)
+void hid_app_get_latest_keyboard_report(hid_keyboard_report_t* latest)
 {
-    tusb_hid_simple_joysick_t* simple_joysticks[2];
-    static tusb_hid_simple_joysick_values_t prev[2] = {0};
-    static joysick_state_t prev_state[2];
-    joysick_state_t state = {"centre", "centre", "blank"};
+  // keyboard_index points to the slot that may be overwritten,
+  // so need to read the other slot
+  if (keyboard_index)
+  {
+    memcpy(latest, &keyboard_report[0], sizeof(hid_keyboard_report_t));
+  }
+  else
+  {
+    memcpy(latest, &keyboard_report[1], sizeof(hid_keyboard_report_t));
+  }
+}
 
-    int detected = tuh_hid_get_simple_joysticks(simple_joysticks, 2);
+void hid_app_get_latest_joystick_state(joystick_state_t* latest, int* num)
+{
+  tusb_hid_simple_joystick_t* simple_joysticks[2];
 
-    for (int i=0; i<detected; ++i)
+  // Clear both values
+  for (int i=0; i<2; ++i)
+  {
+    latest[i].ud = 0;
+    latest[i].lr = 0;
+    latest[i].button = 0;
+  }
+  
+  int detected = tuh_hid_get_simple_joysticks(simple_joysticks, 2);
+  *num = detected;
+
+  for (int i=0; i<detected; ++i)
+  {
+    // Determine: 
+    // up /down /centre
+    // left / right / centre
+    // button 1 up / down
+    uint32_t range = simple_joysticks[i]->axis_x1.logical_max - simple_joysticks[i]->axis_x1.logical_min;
+
+    if (simple_joysticks[i]->values.x1 > (((3 * range) >> 2) + simple_joysticks[i]->axis_x1.logical_min))
     {
-        if (memcmp(&(simple_joysticks[i]->values), &prev[i], sizeof(tusb_hid_simple_joysick_values_t)))
-        {
-          // Store new values
-          memcpy(&prev[i], &(simple_joysticks[i]->values), sizeof(tusb_hid_simple_joysick_values_t));
-
-          // Determine: 
-          // up /down /centre
-          // left / right / centre
-          // button 1 up / down
-          char* ud = "centre";
-          char* lr = "centre";
-          char* fire = "blank";
-
-          uint32_t range = simple_joysticks[i]->axis_x1.logical_max - simple_joysticks[i]->axis_x1.logical_min;
-
-          if (simple_joysticks[i]->values.x1 > (((3 * range) >> 2) + simple_joysticks[i]->axis_x1.logical_min))
-          {
-            state.lr = "right";
-          }
-          else if (simple_joysticks[i]->values.x1 < ((range >> 2) + simple_joysticks[i]->axis_x1.logical_min))
-          {
-            state.lr = "left";
-          }
-
-          range = simple_joysticks[i]->axis_y1.logical_max - simple_joysticks[i]->axis_y1.logical_min;
-          if (simple_joysticks[i]->values.y1 > (((3 * range) >> 2) + simple_joysticks[i]->axis_y1.logical_min))
-          {
-            state.ud = "down";
-          }
-          else if (simple_joysticks[i]->values.y1 < ((range >> 2) + simple_joysticks[i]->axis_y1.logical_min))
-          {
-            state.ud = "up";
-          }
-
-          if (simple_joysticks[i]->values.buttons & 1)
-          {
-            state.fire = "fire";
-          }
-
-          if (memcmp(&prev_state[i], &state, sizeof(joysick_state_t)))
-          {
-            //tusb_hid_print_simple_joysick_report(simple_joysticks[i]);
-            printf("Joystick %i %6s %6s %6s\n", i, state.ud, state.lr, state.fire);
-          }
-          memcpy(&prev_state[i], &state, sizeof(joysick_state_t));
-
-        }
+      latest[i].lr = MASK_JOY_RIGHT;
     }
+    else if (simple_joysticks[i]->values.x1 < ((range >> 2) + simple_joysticks[i]->axis_x1.logical_min))
+    {
+      latest[i].lr = MASK_JOY_LEFT;
+    }
+
+    range = simple_joysticks[i]->axis_y1.logical_max - simple_joysticks[i]->axis_y1.logical_min;
+    if (simple_joysticks[i]->values.y1 > (((3 * range) >> 2) + simple_joysticks[i]->axis_y1.logical_min))
+    {
+      latest[i].ud = MASK_JOY_DOWN;
+    }
+    else if (simple_joysticks[i]->values.y1 < ((range >> 2) + simple_joysticks[i]->axis_y1.logical_min))
+    {
+      latest[i].ud = MASK_JOY_UP;
+    }
+
+    if (simple_joysticks[i]->values.buttons & 1)
+    {
+      latest[i].button = MASK_JOY_BTN;
+    }
+  }
 }
 
 //--------------------------------------------------------------------+
 // Keyboard
 //--------------------------------------------------------------------+
-
-static void handle_kbd_report(tusb_hid_host_info_t* info, const uint8_t* report, uint8_t report_length, uint8_t report_id)
+static void __not_in_flash_func(handle_kbd_report)(tusb_hid_host_info_t* info, const uint8_t* report, uint8_t report_length, uint8_t report_id)
 {
   TU_LOG1("HID receive keyboard report\r\n");
   process_kbd_report((hid_keyboard_report_t*)report);
@@ -153,7 +150,7 @@ void __not_in_flash_func(handle_mouse_report)(tusb_hid_host_info_t* info, const 
 void __not_in_flash_func(handle_joystick_report)(tusb_hid_host_info_t* info, const uint8_t* report, uint8_t report_length, uint8_t report_id)
 { 
   TU_LOG1("HID receive joystick report\r\n");
-  tusb_hid_simple_joysick_t* simple_joystick = tuh_hid_get_simple_joystick(
+  tusb_hid_simple_joystick_t* simple_joystick = tuh_hid_get_simple_joystick(
     info->key.elements.dev_addr, 
     info->key.elements.instance, 
     report_id);
@@ -315,33 +312,13 @@ static inline bool find_key_in_report(hid_keyboard_report_t const *report, uint8
   return false;
 }
 
-static void process_kbd_report(hid_keyboard_report_t const *report)
+static void __not_in_flash_func(process_kbd_report)(hid_keyboard_report_t const *report)
 {
-  static hid_keyboard_report_t prev_report = { 0, 0, {0} }; // previous report to check key released
+  // Copy to the index pointed to by keyboard index
+  memcpy(&keyboard_report[keyboard_index], report, sizeof(hid_keyboard_report_t));
 
-  //------------- example code ignore control (non-printable) key affects -------------//
-  for(uint8_t i=0; i<6; i++)
-  {
-    if ( report->keycode[i] )
-    {
-      if ( find_key_in_report(&prev_report, report->keycode[i]) )
-      {
-        // exist in previous report means the current key is holding
-      }else
-      {
-        // not existed in previous report means the current key is pressed
-        bool const is_shift = report->modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
-        uint8_t ch = keycode2ascii[report->keycode[i]][is_shift ? 1 : 0];
-        putchar(ch);
-        if ( ch == '\r' ) putchar('\n'); // added new line for enter key
-
-        fflush(stdout); // flush right away, else nanolib will wait for newline
-      }
-    }
-    // TODO example skips key released
-  }
-
-  prev_report = *report;
+  // update keyboard_index, so that it points to where the next report will be stored 
+  keyboard_index = 1 - keyboard_index;
 }
 
 //--------------------------------------------------------------------+
@@ -451,3 +428,45 @@ static void __not_in_flash_func(process_generic_report)(uint8_t dev_addr, uint8_
 
   info->handler(info, report, len, rpt_id);
 }
+
+// For testing only
+static uint8_t const keycode2ascii[128][2] =  { HID_KEYCODE_TO_ASCII };
+static inline bool find_key_in_report(hid_keyboard_report_t const *report, uint8_t keycode);
+
+void hid_app_print_keys(void)
+{
+  static hid_keyboard_report_t prev_report = { 0, 0, {0} }; // previous report to check key released
+  hid_keyboard_report_t report;
+  int keys_count = 0;
+  char keys_pressed[6] = {0};
+
+  // Get the latest key report
+  hid_app_get_latest_keyboard_report(&report);
+
+  for(uint8_t i=0; i<6; i++)
+  {
+    if ( report.keycode[i] )
+    {
+      if ( find_key_in_report(&prev_report, report.keycode[i]) )
+      {
+        // exist in previous report means the current key is holding
+      }else
+      {
+        // not existed in previous report means the current key is pressed
+        bool const is_shift = report.modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
+        uint8_t ch = keycode2ascii[report.keycode[i]][is_shift ? 1 : 0];
+        keys_pressed[keys_count++] = ch;
+      }
+    }
+  }
+
+  prev_report = report;
+
+  for (int i=0; i<keys_count; ++i)
+  {
+    printf("%c", keys_pressed[i]);
+    if ( keys_pressed[i] == '\r' ) printf("\n"); // added new line for enter key
+    fflush(stdout); 
+  }  
+}
+

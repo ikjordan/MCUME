@@ -5,8 +5,10 @@
 #include "pico.h"
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
+#ifdef USB_HID
 #include "bsp/board.h"
 #include "tusb.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -1251,10 +1253,13 @@ void emu_init(void)
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   tft.begin();
 #endif
+
+#ifdef USB_HID
   board_init();
 
   // init host stack on configured roothub port
   tuh_init(BOARD_TUH_RHPORT);
+#endif
 
   sd_init_driver(); 
   FRESULT fr = f_mount(&fatfs, "0:", 1);    

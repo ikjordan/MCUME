@@ -28,7 +28,7 @@
 #include "hid_host_utils.h"
 #include "bsp/board.h"
 
-static tusb_hid_simple_joysick_t hid_simple_joysicks[HID_MAX_JOYSTICKS];
+static tusb_hid_simple_joystick_t hid_simple_joysicks[HID_MAX_JOYSTICKS];
 
 static bool tuh_hid_joystick_check_usage(uint32_t eusage)
 {
@@ -40,7 +40,7 @@ static bool tuh_hid_joystick_check_usage(uint32_t eusage)
   }
 }
 
-tusb_hid_simple_joysick_t* tuh_hid_get_simple_joystick(uint8_t dev_addr, uint8_t instance, uint8_t report_id)
+tusb_hid_simple_joystick_t* tuh_hid_get_simple_joystick(uint8_t dev_addr, uint8_t instance, uint8_t report_id)
 {
   tusb_hid_simple_joysick_key_t key;
   key.elements.dev_addr = dev_addr;
@@ -50,7 +50,7 @@ tusb_hid_simple_joysick_t* tuh_hid_get_simple_joystick(uint8_t dev_addr, uint8_t
   uint32_t combined = key.combined;
   
   for(uint8_t i = 0; i < HID_MAX_JOYSTICKS; ++i) {
-    tusb_hid_simple_joysick_t* simple_joystick = &hid_simple_joysicks[i];
+    tusb_hid_simple_joystick_t* simple_joystick = &hid_simple_joysicks[i];
     if (simple_joystick->key.combined == combined) return simple_joystick;
   }
   return NULL;
@@ -64,7 +64,7 @@ void tuh_hid_free_simple_joysticks(void) {
 
 void tuh_hid_free_simple_joysticks_for_instance(uint8_t dev_addr, uint8_t instance) {
   for(uint8_t i = 0; i < HID_MAX_JOYSTICKS; ++i) {
-    tusb_hid_simple_joysick_t* simple_joystick = &hid_simple_joysicks[i];
+    tusb_hid_simple_joystick_t* simple_joystick = &hid_simple_joysicks[i];
     if (simple_joystick->key.elements.dev_addr == dev_addr && simple_joystick->key.elements.instance == instance) simple_joystick->key.elements.in_use = 0;
   }
 }
@@ -79,11 +79,11 @@ static void tuh_hid_joystick_init_axis(
   simple_axis->logical_max = 1;
 }
 
-tusb_hid_simple_joysick_t* tuh_hid_allocate_simple_joystick(uint8_t dev_addr, uint8_t instance, uint8_t report_id) {
+tusb_hid_simple_joystick_t* tuh_hid_allocate_simple_joystick(uint8_t dev_addr, uint8_t instance, uint8_t report_id) {
   for(uint8_t i = 0; i < HID_MAX_JOYSTICKS; ++i) {
-    tusb_hid_simple_joysick_t* simple_joystick = &hid_simple_joysicks[i];
+    tusb_hid_simple_joystick_t* simple_joystick = &hid_simple_joysicks[i];
     if (!simple_joystick->key.elements.in_use) {
-      tu_memclr(simple_joystick, sizeof(tusb_hid_simple_joysick_t));
+      tu_memclr(simple_joystick, sizeof(tusb_hid_simple_joystick_t));
       simple_joystick->key.elements.in_use = 1;;
       simple_joystick->key.elements.instance = instance;
       simple_joystick->key.elements.report_id = report_id;
@@ -99,8 +99,8 @@ tusb_hid_simple_joysick_t* tuh_hid_allocate_simple_joystick(uint8_t dev_addr, ui
 }
 
 // get or create
-tusb_hid_simple_joysick_t* tuh_hid_obtain_simple_joystick(uint8_t dev_addr, uint8_t instance, uint8_t report_id) {
-  tusb_hid_simple_joysick_t* jdata = tuh_hid_get_simple_joystick(dev_addr, instance, report_id);
+tusb_hid_simple_joystick_t* tuh_hid_obtain_simple_joystick(uint8_t dev_addr, uint8_t instance, uint8_t report_id) {
+  tusb_hid_simple_joystick_t* jdata = tuh_hid_get_simple_joystick(dev_addr, instance, report_id);
   return jdata ? jdata : tuh_hid_allocate_simple_joystick(dev_addr, instance, report_id);
 }
 
@@ -168,7 +168,7 @@ void tuh_hid_joystick_process_usages(
     return;
   }
 
-  tusb_hid_simple_joysick_t* simple_joystick = tuh_hid_obtain_simple_joystick(dev_addr, instance, jdata->report_id);
+  tusb_hid_simple_joystick_t* simple_joystick = tuh_hid_obtain_simple_joystick(dev_addr, instance, jdata->report_id);
   
   if (simple_joystick == NULL) {
     printf("Failed to allocate joystick for HID dev_addr %d, instance %d, report ID %d\n", dev_addr, instance, jdata->report_id);
@@ -257,7 +257,7 @@ int32_t tuh_hid_simple_joystick_get_axis_value(tusb_hid_simple_axis_t* simple_ax
   return tuh_hid_report_i32(report, simple_axis->start, simple_axis->length, simple_axis->flags.is_signed);
 }
 
-void tusb_hid_simple_joysick_process_report(tusb_hid_simple_joysick_t* simple_joystick, const uint8_t* report, uint8_t report_length)
+void tusb_hid_simple_joysick_process_report(tusb_hid_simple_joystick_t* simple_joystick, const uint8_t* report, uint8_t report_length)
  {   
   if (simple_joystick->report_length > report_length) {
     TU_LOG1("HID joystick report too small\r\n");
@@ -274,7 +274,7 @@ void tusb_hid_simple_joysick_process_report(tusb_hid_simple_joysick_t* simple_jo
   simple_joystick->updated = board_millis();
 }
 
-void tusb_hid_print_simple_joysick_report(tusb_hid_simple_joysick_t* simple_joystick)
+void tusb_hid_print_simple_joysick_report(tusb_hid_simple_joystick_t* simple_joystick)
 {
   if (simple_joystick->has_values) {  
     printf("dev_addr=%3d, instance=%3d, report_id=%3d, x1=%4ld, y1=%4ld, x2=%4ld, y2=%4ld, hat=%01lX, buttons=%04lX\n",  
@@ -290,11 +290,11 @@ void tusb_hid_print_simple_joysick_report(tusb_hid_simple_joysick_t* simple_joys
   }
 }
 
-uint8_t tuh_hid_get_simple_joysticks(tusb_hid_simple_joysick_t** simple_joysticks, uint8_t max_simple_joysticks)
+uint8_t tuh_hid_get_simple_joysticks(tusb_hid_simple_joystick_t** simple_joysticks, uint8_t max_simple_joysticks)
 {
   uint8_t j = 0;
   for(uint8_t i = 0; i < HID_MAX_JOYSTICKS && j < max_simple_joysticks; ++i) {
-    tusb_hid_simple_joysick_t* simple_joystick = &hid_simple_joysicks[i];
+    tusb_hid_simple_joystick_t* simple_joystick = &hid_simple_joysicks[i];
     if (simple_joystick->key.elements.in_use) {
       simple_joysticks[j++] = simple_joystick;
     }

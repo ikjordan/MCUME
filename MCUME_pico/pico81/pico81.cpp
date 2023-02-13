@@ -1,6 +1,8 @@
 #include "pico.h"
 #include "pico/stdlib.h"
+#ifdef USB_HID
 #include "tusb.h"
+#endif
 
 extern "C" {
   #include "iopins.h"  
@@ -35,12 +37,6 @@ static int skip=0;
 #include "hardware/clocks.h"
 #include "hardware/vreg.h"
 
-extern "C"
-{
-    void cdc_app_task(void);
-    void hid_app_task(void);
-}
-
 int main(void) {
 //    vreg_set_voltage(VREG_VOLTAGE_1_05);
 //    set_sys_clock_khz(125000, true);    
@@ -58,11 +54,10 @@ int main(void) {
 #endif  
     emu_init();
     while (true) {
+#ifdef USB_HID
         // Process usb
         tuh_task();
-
-        cdc_app_task();
-        hid_app_task();
+#endif
 
         if (menuActive()) {
             uint16_t bClick = emu_DebounceLocalKeys();

@@ -31,6 +31,7 @@ set(PICO81_SOURCES
 		pico81/emuapi.cpp
 		pico81/pico81.cpp
 		pico81/AudioPlaySystem.cpp
+		pico81/hid_usb.c
 	)
 
 set(PICOSPECCY_SOURCES 
@@ -288,7 +289,6 @@ set(GFXENGINE_SOURCES
 	)
 
 set (PICOUSB_SOURCES
-		picousb/cdc_app.c
 		picousb/hid_app.c
 		picousb/hid_host_info.c
 		picousb/hid_host_joy.c
@@ -344,6 +344,8 @@ add_executable(mcume
 		${PICOUSB_SOURCES}
 #		${TFT_T_SOURCES}
 	)
+
+target_compile_definitions(mcume PUBLIC -DUSB_HID)
 
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/timing.pio)
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/scanvideo.pio)

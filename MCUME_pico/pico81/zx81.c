@@ -8,6 +8,9 @@
 #include "emuapi.h"
 #include "common.h"
 #include "AY8910.h"
+#ifdef USB_HID
+#include "hid_usb.h"
+#endif
 
 #define MEMORYRAM_SIZE 0x10000
 
@@ -241,12 +244,15 @@ void bitbufBlit(unsigned char * buf)
   }
 }
 
-static void updateKeyboard (void)
+static void updateKeyboard(void)
 {
+#ifdef USB_HID
+  readUsbKeyboard();
+#else
   //int k = ik; //emu_GetPad();
   int hk = ihk; //emu_ReadI2CKeyboard();  
   //if ( hk == 0 )  {
-  memset(keyboard, 0xff, sizeof(keyboard));    
+  memset(keyboard, 0xff, sizeof(keyboard));
   //}
   //else 
   {
@@ -264,6 +270,7 @@ static void updateKeyboard (void)
     if (shift >=64) keyboard[0] &= ~ (1<<0);  // SHift 
     //else if (shift >=64) keyboard[7] &= ~ (1<<1);  // SHift symboles     
   }
+#endif
 }
 
 /*
@@ -272,7 +279,7 @@ static void handleKeyBuf(void)
   if (timeout) {
     timeout--;
     if (timeout==0) {
-      memset(keyboard, 0xff, sizeof(keyboard)); 
+      memset(keyboard, 0xff, sizeof(keyboard));
       emu_printf("key up");
     }
   }
@@ -503,6 +510,10 @@ void z81_Init(void)
 #if HAS_SND
   emu_sndInit(); 
 #endif 
+
+#ifdef USB_HID
+  initialiseHid(keyboard);
+#endif
   
   if (XBuf == 0) XBuf = (byte *)emu_Malloc(WIDTH*8);
   /* Set up the palette */
