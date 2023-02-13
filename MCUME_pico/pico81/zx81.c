@@ -215,8 +215,8 @@ void z81_Input(int bClick) {
 void bitbufBlit(unsigned char * buf)
 {
   emu_DrawVsync();  
-  memset( XBuf, 1, WIDTH*8 ); 
-  buf = buf + (ZX_VID_MARGIN*(ZX_VID_FULLWIDTH/8));
+  memset( XBuf, 1, WIDTH*8 );
+  buf = buf + (ZX_VID_MARGIN*(ZX_VID_FULLWIDTH/8))+1;
   int y,x,i;
   byte d;
   for(y=0;y<192;y++)
