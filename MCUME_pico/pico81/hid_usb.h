@@ -8,6 +8,7 @@ extern "C" {
 #endif
 void initialiseHid(byte* keyboard);
 void readUsbKeyboard(void);
+void injectKey(uint8_t code);
 int16_t readUsbJoystick(int instance);
 #ifdef __cplusplus
 }

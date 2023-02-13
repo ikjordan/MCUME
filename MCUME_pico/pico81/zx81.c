@@ -9,6 +9,7 @@
 #include "common.h"
 #include "AY8910.h"
 #ifdef USB_HID
+#include "hid_app.h"
 #include "hid_usb.h"
 #endif
 
@@ -248,6 +249,23 @@ static void updateKeyboard(void)
 {
 #ifdef USB_HID
   readUsbKeyboard();
+
+  // test emulation of joystick
+  int16_t val = readUsbJoystick(1);
+  if (val)
+  {
+    if (val & MASK_JOY_RIGHT)
+    {
+      injectKey(HID_KEY_8);
+    } else if (val & MASK_JOY_LEFT)
+    {
+      injectKey(HID_KEY_5);
+    }
+    if (val & MASK_JOY_BTN)
+    {
+      injectKey(HID_KEY_0);
+    }
+  }
 #else
   //int k = ik; //emu_GetPad();
   int hk = ihk; //emu_ReadI2CKeyboard();  

@@ -166,6 +166,19 @@ void readUsbKeyboard(void)
     }
 }
 
+void injectKey(uint8_t code)
+{
+    const HidKey_t* k = findKey(code);
+    if (k)
+    {
+        for (uint32_t c = 0; c < k->contacts; ++c)
+        {
+            const Contact_t* contact = &k->contact[c];
+            press(contact->line, contact->key);
+        }
+    }
+}
+
 int16_t readUsbJoystick(int instance)
 {
     int16_t result = 0;
