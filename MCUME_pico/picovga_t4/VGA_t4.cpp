@@ -100,6 +100,7 @@ static void core1_func()
 
 VGA_T4::VGA_T4()
 {
+  initialisebw();
 }
 
 void VGA_T4::tweak_video(int shiftdelta, int numdelta, int denomdelta)
@@ -397,10 +398,20 @@ void VGA_T4::writeLine(int width, int height, int y, uint8_t *buf, vga_pixel *pa
 
 #define WHITE_PIXEL 0xff
 #define BLACK_PIXEL 0x0
+void VGA_T4::initialisebw()
+{
+  for (int i=0;i<256;++i)
+  {
+    for (int j=0;j<8;++j)
+    {
+      _bw_lookup[i][j] = (i<<j)&0x80 ? BLACK_PIXEL : WHITE_PIXEL;
+    }
+  }
+}
+
 void VGA_T4::writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t *buf, vga_pixel background) 
 {
   vga_pixel* dst=&framebuffer[start_y*fb_stride];
-  uint8_t d;
 
   for (int i=0; i<start_x; ++i)
     *dst++ = background;
@@ -408,12 +419,8 @@ void VGA_T4::writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t 
   for (int i=0; i<(pixel_len>>3); ++i)
   {
     // Populate a byte for each bit
-    d = *buf++;
-    for (int b=0; b<8; ++b)
-    {
-      *dst++ = (d & 0x80 ) ? BLACK_PIXEL : WHITE_PIXEL;
-      d <<= 1;
-    }
+    memcpy(dst, _bw_lookup[*buf++], 8);
+    dst+=8;
   }
   for (int i=0; i<fb_width - pixel_len - start_x; ++i)
     *dst++ = background;

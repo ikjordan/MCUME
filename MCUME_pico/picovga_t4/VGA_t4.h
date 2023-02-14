@@ -255,6 +255,10 @@ public:
 
 private:
   static uint8_t _vsync_pin;
+  vga_pixel _bw_lookup[256][8];
+
+  void initialisebw();
+
 };
 
 
