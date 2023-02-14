@@ -398,13 +398,16 @@ void VGA_T4::writeLine(int width, int height, int y, uint8_t *buf, vga_pixel *pa
 
 #define WHITE_PIXEL 0xff
 #define BLACK_PIXEL 0x0
+
+vga_pixel VGA_T4::_bw_lookup[256][8];
+
 void VGA_T4::initialisebw()
 {
-  for (int i=0;i<256;++i)
+  for (int i=0; i<256; ++i)
   {
-    for (int j=0;j<8;++j)
+    for (int j=0; j<8; ++j)
     {
-      _bw_lookup[i][j] = (i<<j)&0x80 ? BLACK_PIXEL : WHITE_PIXEL;
+      VGA_T4::_bw_lookup[i][j] = (i<<j)&0x80 ? BLACK_PIXEL : WHITE_PIXEL;
     }
   }
 }
