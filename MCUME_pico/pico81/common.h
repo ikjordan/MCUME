@@ -3,8 +3,8 @@ typedef unsigned char  byte;
 //typedef unsigned short  word;
 
 #define WIDTH  320
-#define HEIGHT 240  // was 192
-#define BORDER 32
+#define HEIGHT 240  // To allow display of overscan
+#define BORDER 24   // To allow for up to 34 characters per line
 
 #define CYCLES_PER_FRAME 65000//3500000/50
 

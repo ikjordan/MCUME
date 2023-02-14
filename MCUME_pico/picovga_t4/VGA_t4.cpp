@@ -395,6 +395,30 @@ void VGA_T4::writeLine(int width, int height, int y, uint8_t *buf, vga_pixel *pa
   }
 }
 
+#define WHITE_PIXEL 0xff
+#define BLACK_PIXEL 0x0
+void VGA_T4::writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t *buf, vga_pixel background) 
+{
+  vga_pixel* dst=&framebuffer[start_y*fb_stride];
+  uint8_t d;
+
+  for (int i=0; i<start_x; ++i)
+    *dst++ = background;
+
+  for (int i=0; i<(pixel_len>>3); ++i)
+  {
+    // Populate a byte for each bit
+    d = *buf++;
+    for (int b=0; b<8; ++b)
+    {
+      *dst++ = (d & 0x80 ) ? BLACK_PIXEL : WHITE_PIXEL;
+      d <<= 1;
+    }
+  }
+  for (int i=0; i<fb_width - pixel_len - start_x; ++i)
+    *dst++ = background;
+}
+
 void VGA_T4::writeLine(int width, int height, int y, vga_pixel *buf) {
   if ( (height<fb_height) && (height > 2) ) y += (fb_height-height)/2;
   uint8_t * dst=&framebuffer[y*fb_stride];    

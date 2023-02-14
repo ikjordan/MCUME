@@ -42,9 +42,9 @@ int main(void) {
 //    set_sys_clock_khz(125000, true);    
 //    set_sys_clock_khz(150000, true);    
 //    set_sys_clock_khz(133000, true);    
-    set_sys_clock_khz(200000, true);    
+//    set_sys_clock_khz(200000, true);
 //    set_sys_clock_khz(225000, true);    
-//    set_sys_clock_khz(240000, true);    
+    set_sys_clock_khz(240000, true);
 //    set_sys_clock_khz(250000, true);  
     stdio_init_all();
 #ifdef USE_VGA    
@@ -122,6 +122,14 @@ void emu_DrawLine(unsigned char * VBuf, int width, int height, int line)
     }  
 }  
 
+void emu_DrawLineBW(unsigned char * VBuf, int start_x, int start_y, int len, unsigned char background)
+{
+    if (skip == 0) {
+#ifdef USE_VGA
+            tft.writeSingleLineBW(start_x, start_y, len, VBuf, background);
+#endif
+    }
+}
 
 void emu_DrawLine8(unsigned char * VBuf, int width, int height, int line) 
 {

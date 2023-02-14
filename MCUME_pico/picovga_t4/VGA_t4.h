@@ -184,6 +184,7 @@ public:
   void drawSprite(int16_t x, int16_t y, const int16_t *bitmap);
   void drawSprite(int16_t x, int16_t y, const int16_t *bitmap, uint16_t croparx, uint16_t cropary, uint16_t croparw, uint16_t croparh);
   void writeScreen(const vga_pixel *pcolors);  
+  void writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t *buf, vga_pixel background);
   void writeLine(int width, int height, int y, vga_pixel *buf);
   void writeLine(int width, int height, int stride, uint8_t *buffer, vga_pixel *palette);
   void writeLine16(int width, int height, int y, uint16_t *buf);  

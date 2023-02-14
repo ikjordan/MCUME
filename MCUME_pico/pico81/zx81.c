@@ -15,6 +15,9 @@
 
 #define MEMORYRAM_SIZE 0x10000
 
+#define BLACK 0x0
+#define WHITE 0xFF
+
 static AY8910 ay;
 //byte memo[ MEMORYRAM_SIZE ];
 byte * mem = 0;
@@ -213,6 +216,31 @@ void z81_Input(int bClick) {
   ihk = emu_ReadI2CKeyboard();
 }
 
+#ifdef USE_VGA
+void bitbufBlit(unsigned char * buf, int liney)
+{
+  emu_DrawVsync();
+
+  int margin = (ZX_VID_MARGIN>>1);
+  if (liney >= (HEIGHT+(3<<3)))
+  {
+    // Have drawn more than HEIGHT lines. Allow the display
+    // to grow down for 3 rows, then adjust the vertical margin
+    // to display as many lines as possible,
+    // making sure top of display is still visible
+    int inc = ((liney - HEIGHT)>>1);
+    margin += (inc < (ZX_VID_MARGIN>>1)) ? inc : ZX_VID_MARGIN>>1;
+  }
+
+  buf = buf + (margin*(ZX_VID_FULLWIDTH>>3))+1+(BORDER>>3);
+  for(int y=0;y<HEIGHT;y++)
+  {
+    // Draw 34 characters = 34*8 = 272 pixels
+    emu_DrawLineBW(buf, BORDER, y, 34<<3, WHITE);
+    buf += (ZX_VID_FULLWIDTH>>3);
+  }
+}
+#else
 void bitbufBlit(unsigned char * buf, int liney)
 {
   emu_DrawVsync();  
@@ -232,7 +260,7 @@ void bitbufBlit(unsigned char * buf, int liney)
   for(y=0;y<HEIGHT;y++)
   {
     byte * src = buf + 4;
-    for(x=0;x<32;x++)
+    for(x=0;x<34;x++)
     {
       byte * dst=&XBuf[(x<<3)+BORDER];
       d = *src++;
@@ -253,6 +281,7 @@ void bitbufBlit(unsigned char * buf, int liney)
     buf += (ZX_VID_FULLWIDTH>>3);
   }
 }
+#endif
 
 static void updateKeyboard(void)
 {
