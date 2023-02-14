@@ -3,7 +3,7 @@ typedef unsigned char  byte;
 //typedef unsigned short  word;
 
 #define WIDTH  320
-#define HEIGHT 192
+#define HEIGHT 240  // was 192
 #define BORDER 32
 
 #define CYCLES_PER_FRAME 65000//3500000/50
@@ -12,8 +12,10 @@ typedef unsigned char  byte;
 /* full internal image with overscan (but not hsync/vsync areas) */
 #define ZX_VID_MARGIN		55
 #define ZX_VID_HMARGIN		(8*8)
-#define ZX_VID_FULLWIDTH	(2*ZX_VID_HMARGIN+32*8)	/* sic */
-#define ZX_VID_FULLHEIGHT	(2*ZX_VID_MARGIN+192)
+//#define ZX_VID_FULLWIDTH	(2*ZX_VID_HMARGIN+32*8)	/* sic */
+//#define ZX_VID_FULLHEIGHT	(2*ZX_VID_MARGIN+192)
+#define ZX_VID_FULLWIDTH 400
+#define ZX_VID_FULLHEIGHT 300
 
 
 /* AY board types */
@@ -42,5 +44,5 @@ extern void load_p(int a);
 extern void do_interrupt();
 extern void reset81();
 extern void frame_pause(void);
-extern void bitbufBlit(unsigned char * buf);
+extern void bitbufBlit(unsigned char * buf, int liney);
 

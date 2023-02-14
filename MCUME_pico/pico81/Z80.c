@@ -282,7 +282,7 @@ void ExecZ80(void)
       }
       else
       {
-        bitbufBlit(scrnbmp_new);
+        bitbufBlit(scrnbmp_new, liney);
         postcopy:
         memset(scrnbmp_new,0,sizeof(scrnbmp_new));
         lastvsyncpend=tstates;

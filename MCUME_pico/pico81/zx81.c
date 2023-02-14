@@ -213,14 +213,23 @@ void z81_Input(int bClick) {
   ihk = emu_ReadI2CKeyboard();
 }
 
-void bitbufBlit(unsigned char * buf)
+void bitbufBlit(unsigned char * buf, int liney)
 {
   emu_DrawVsync();  
-  memset( XBuf, 1, WIDTH*8 );
-  buf = buf + (ZX_VID_MARGIN*(ZX_VID_FULLWIDTH/8))+1;
+  memset( XBuf, 1, WIDTH<<3 );
+  int margin = (ZX_VID_MARGIN>>1);
+  if (liney >= HEIGHT)
+  {
+    // Have drawn more than HEIGHT lines, so adjust the
+    // vertical margin to display as many lines as possible,
+    // making sure top of display is still visible
+    int inc = ((liney - HEIGHT)>>1);
+    margin += (inc < (ZX_VID_MARGIN>>1)) ? inc : ZX_VID_MARGIN>>1;
+  }
+  buf = buf + (margin*(ZX_VID_FULLWIDTH>>3))+1;
   int y,x,i;
   byte d;
-  for(y=0;y<192;y++)
+  for(y=0;y<HEIGHT;y++)
   {
     byte * src = buf + 4;
     for(x=0;x<32;x++)
@@ -241,7 +250,7 @@ void bitbufBlit(unsigned char * buf)
       }       
     }
     emu_DrawLine(&XBuf[0], WIDTH, HEIGHT, y);   
-    buf += (ZX_VID_FULLWIDTH/8);
+    buf += (ZX_VID_FULLWIDTH>>3);
   }
 }
 
