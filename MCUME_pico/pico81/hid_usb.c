@@ -191,4 +191,28 @@ int16_t readUsbJoystick(int instance)
     return result;
 }
 
-
+void joystickToKeyboard(int instance, byte up, byte down, byte left, byte right, byte button)
+{
+  int16_t val = readUsbJoystick(instance);
+  if (val)
+  {
+    if (val & MASK_JOY_RIGHT)
+    {
+      injectKey(right);
+    } else if (val & MASK_JOY_LEFT)
+    {
+      injectKey(left);
+    }
+    if (val & MASK_JOY_UP)
+    {
+      injectKey(up);
+    } else if (val & MASK_JOY_DOWN)
+    {
+      injectKey(down);
+    }
+    if (val & MASK_JOY_BTN)
+    {
+      injectKey(button);
+    }
+  }
+}
