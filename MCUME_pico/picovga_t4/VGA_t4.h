@@ -184,12 +184,14 @@ public:
   void drawSprite(int16_t x, int16_t y, const int16_t *bitmap);
   void drawSprite(int16_t x, int16_t y, const int16_t *bitmap, uint16_t croparx, uint16_t cropary, uint16_t croparw, uint16_t croparh);
   void writeScreen(const vga_pixel *pcolors);  
-  void writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t *buf, vga_pixel background);
   void writeLine(int width, int height, int y, vga_pixel *buf);
   void writeLine(int width, int height, int stride, uint8_t *buffer, vga_pixel *palette);
   void writeLine16(int width, int height, int y, uint16_t *buf);  
   void writeScreen(int width, int height, int stride, uint8_t *buffer, vga_pixel *palette);
   void copyLine(int width, int height, int ysrc, int ydst);
+  #ifdef SUPPORT_1BPP 
+  void writeSingleLine1bpp(int start_x, int start_y, int pixel_len, uint8_t *buf, bool background);
+  #endif
 
   // ************************************** GFX API extension from darthvader ******************************************************
   void drawline(int16_t x1, int16_t y1, int16_t x2, int16_t y2, vga_pixel color);
@@ -255,10 +257,11 @@ public:
 
 private:
   static uint8_t _vsync_pin;
-  static vga_pixel _bw_lookup[256][8];
 
-  void initialisebw();
-
+#ifdef SUPPORT_1BPP
+  static vga_pixel _1bpp_lookup[256][8];
+  void initialise1bppLookup();
+#endif
 };
 
 

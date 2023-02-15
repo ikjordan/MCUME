@@ -186,7 +186,6 @@ public:
   void writeScreen(const vga_pixel *pcolors);  
   void writeLine(int width, int height, int y, vga_pixel *buf);
   void writeLine(int width, int height, int stride, uint8_t *buffer, vga_pixel *palette);
-  void writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t *buf, vga_pixel background);
   void writeLine16(int width, int height, int y, uint16_t *buf);  
   void writeScreen(int width, int height, int stride, uint8_t *buffer, vga_pixel *palette);
   void copyLine(int width, int height, int ysrc, int ydst);

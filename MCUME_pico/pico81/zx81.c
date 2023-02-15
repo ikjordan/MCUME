@@ -15,9 +15,6 @@
 
 #define MEMORYRAM_SIZE 0x10000
 
-#define BLACK 0x0
-#define WHITE 0xFF
-
 static AY8910 ay;
 //byte memo[ MEMORYRAM_SIZE ];
 byte * mem = 0;
@@ -25,7 +22,7 @@ unsigned char *memptr[64];
 int memattr[64];
 int unexpanded=0;
 int nmigen=0,hsyncgen=0,vsync=0;
-int vsync_visuals=0;
+int vsync_visuals=1;
 int signal_int_flag=0;
 int interrupted=0;
 int ramsize=32; //32;
@@ -216,7 +213,7 @@ void z81_Input(int bClick) {
   ihk = emu_ReadI2CKeyboard();
 }
 
-#ifdef USE_VGA
+#if defined(USE_VGA) && defined(SUPPORT_1BPP)
 void bitbufBlit(unsigned char * buf, int liney)
 {
   emu_DrawVsync();
@@ -236,7 +233,7 @@ void bitbufBlit(unsigned char * buf, int liney)
   for(int y=0;y<HEIGHT;y++)
   {
     // Draw 34 characters = 34*8 = 272 pixels
-    emu_DrawLineBW(buf, BORDER, y, 34<<3, WHITE);
+    emu_DrawLine1BPP(buf, BORDER, y, 34<<3, true);
     buf += (ZX_VID_FULLWIDTH>>3);
   }
 }

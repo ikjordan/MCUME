@@ -2,6 +2,7 @@
 #define EMUAPI_H
 
 #include "platform_config.h"
+#include <stdbool.h>
 
 //#define TIMER_REND  1
 #define EXTRA_HEAP  0x10
@@ -117,7 +118,6 @@ extern void emu_DrawScreen(unsigned char * VBuf, int width, int height, int stri
 extern void emu_DrawLine(unsigned char * VBuf, int width, int height, int line);
 extern void emu_DrawLine8(unsigned char * VBuf, int width, int height, int line);
 extern void emu_DrawLine16(unsigned short * VBuf, int width, int height, int line);
-extern void emu_DrawLineBW(unsigned char * VBuf, int start_x, int start_y, int len, unsigned char background);
 extern void emu_DrawVsync(void);
 extern int emu_FrameSkip(void);
 extern void * emu_LineBuffer(int line);
@@ -146,5 +146,8 @@ extern void emu_FileTempRead(int addr, unsigned char * val, int n);
 extern void emu_FileTempWrite(int addr, unsigned char val); 
 extern void emu_printh(int val);
 
+#ifdef SUPPORT_1BPP
+extern void emu_DrawLine1BPP(unsigned char * VBuf, int start_x, int start_y, int len, bool background);
+#endif
 
 #endif

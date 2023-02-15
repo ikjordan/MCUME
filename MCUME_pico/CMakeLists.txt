@@ -17,8 +17,8 @@ pico_sdk_init()
 add_subdirectory(FatFs_SPI build)
 
 include_directories(config)
-include_directories(vga_t4)
-#include_directories(picovga_t4)
+#include_directories(vga_t4)
+include_directories(picovga_t4)
 include_directories(tft_t)
 include_directories(psram)
 include_directories(picousb)
@@ -345,7 +345,7 @@ add_executable(mcume
 #		${TFT_T_SOURCES}
 	)
 
-target_compile_definitions(mcume PUBLIC -DUSB_HID)
+target_compile_definitions(mcume PUBLIC -DUSB_HID -DSUPPORT_1BPP)
 
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/timing.pio)
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/scanvideo.pio)

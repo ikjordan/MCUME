@@ -100,7 +100,9 @@ static void core1_func()
 
 VGA_T4::VGA_T4()
 {
-  initialisebw();
+#ifdef SUPPORT_1BPP
+  initialise1bppLookup();
+#endif
 }
 
 void VGA_T4::tweak_video(int shiftdelta, int numdelta, int denomdelta)
@@ -394,39 +396,6 @@ void VGA_T4::writeLine(int width, int height, int y, uint8_t *buf, vga_pixel *pa
       *dst++=palette[*buf++];
     } 
   }
-}
-
-#define WHITE_PIXEL 0xff
-#define BLACK_PIXEL 0x0
-
-vga_pixel VGA_T4::_bw_lookup[256][8];
-
-void VGA_T4::initialisebw()
-{
-  for (int i=0; i<256; ++i)
-  {
-    for (int j=0; j<8; ++j)
-    {
-      VGA_T4::_bw_lookup[i][j] = (i<<j)&0x80 ? BLACK_PIXEL : WHITE_PIXEL;
-    }
-  }
-}
-
-void VGA_T4::writeSingleLineBW(int start_x, int start_y, int pixel_len, uint8_t *buf, vga_pixel background) 
-{
-  vga_pixel* dst=&framebuffer[start_y*fb_stride];
-
-  for (int i=0; i<start_x; ++i)
-    *dst++ = background;
-
-  for (int i=0; i<(pixel_len>>3); ++i)
-  {
-    // Populate a byte for each bit
-    memcpy(dst, _bw_lookup[*buf++], 8);
-    dst+=8;
-  }
-  for (int i=0; i<fb_width - pixel_len - start_x; ++i)
-    *dst++ = background;
 }
 
 void VGA_T4::writeLine(int width, int height, int y, vga_pixel *buf) {
@@ -1722,6 +1691,42 @@ void VGA_T4::end_audio()
   }  
 }
 
-#endif
- 
+#ifdef SUPPORT_1BPP
+#define WHITE_PIXEL (VGA_RGB(0xFF, 0xFF, 0xFF))
+#define BLACK_PIXEL (VGA_RGB(0, 0, 0))
 
+vga_pixel VGA_T4::_1bpp_lookup[256][8];
+
+void VGA_T4::initialise1bppLookup()
+{
+  for (int i=0; i<256; ++i)
+  {
+    for (int j=0; j<8; ++j)
+    {
+      // If the bit is set, then the byte will be black
+      VGA_T4::_1bpp_lookup[i][j] = (i<<j)&0x80 ? BLACK_PIXEL : WHITE_PIXEL;
+    }
+  }
+}
+
+void VGA_T4::writeSingleLine1bpp(int start_x, int start_y, int pixel_len, uint8_t *buf, bool background) 
+{
+  uint64_t* dst=(uint64_t*)(&framebuffer[start_y*fb_stride]);
+  uint64_t back = *((uint64_t*)_1bpp_lookup[background ? 0 : 255]); // white is no bits set in 1bpp byte
+
+
+  for (int i=0; i<(start_x>>3); ++i)
+    *dst++ = back;
+
+  for (int i=0; i<(pixel_len>>3); ++i)
+  {
+    // Populate a byte for each bit
+    *dst++ = *((uint64_t*)_1bpp_lookup[*buf++]);
+  }
+
+  for (int i=0; i<((fb_width - pixel_len - start_x)>>3); ++i)
+    *dst++ = back;
+}
+#endif
+
+#endif

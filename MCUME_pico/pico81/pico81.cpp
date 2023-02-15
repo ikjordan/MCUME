@@ -43,8 +43,8 @@ int main(void) {
 //    set_sys_clock_khz(150000, true);    
 //    set_sys_clock_khz(133000, true);    
 //    set_sys_clock_khz(200000, true);
-//    set_sys_clock_khz(225000, true);    
-    set_sys_clock_khz(240000, true);
+    set_sys_clock_khz(210000, true);
+//    set_sys_clock_khz(240000, true);
 //    set_sys_clock_khz(250000, true);  
     stdio_init_all();
 #ifdef USE_VGA    
@@ -122,15 +122,6 @@ void emu_DrawLine(unsigned char * VBuf, int width, int height, int line)
     }  
 }  
 
-void emu_DrawLineBW(unsigned char * VBuf, int start_x, int start_y, int len, unsigned char background)
-{
-    if (skip == 0) {
-#ifdef USE_VGA
-            tft.writeSingleLineBW(start_x, start_y, len, VBuf, background);
-#endif
-    }
-}
-
 void emu_DrawLine8(unsigned char * VBuf, int width, int height, int line) 
 {
     if (skip == 0) {
@@ -168,7 +159,23 @@ void * emu_LineBuffer(int line)
     return (void*)tft.getLineBuffer(line);    
 }
 
-
+#ifdef SUPPORT_1BPP
+/*
+    VBuf    Pointer to buffer with pixel data in 1 bit per pixel form
+            0 = White, 1 = Black
+    start_x offset in pixels to start drawing line. Must be multiple of 8
+    row     y position in frame to draw line
+    length  Number of pixels to plot. Must be multiple of 8
+    background   if true pixels on the line that are not to be set from
+            Vbuf are set to white, if false they are set to black
+*/
+void emu_DrawLine1BPP(unsigned char * VBuf, int start_x, int row, int len, bool background)
+{
+    if (skip == 0) {
+        tft.writeSingleLine1bpp(start_x, row, len, VBuf, background);
+    }
+}
+#endif
 
 #ifdef HAS_SND
 #include "AudioPlaySystem.h"
