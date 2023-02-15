@@ -1208,7 +1208,7 @@ bool emu_SaveFile(const char * filepath, void * buf, int size)
 {
   emu_printf("SaveFile...");
   emu_printf(filepath);
-  if( !(f_open(&file, filepath, FA_CREATE_NEW | FA_WRITE)) )
+  if( !(f_open(&file, filepath, FA_CREATE_ALWAYS | FA_WRITE)) )
   {
     unsigned int retval=0;
     if( (f_write(&file, buf, size, &retval)) )
