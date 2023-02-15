@@ -53,12 +53,11 @@ int main(void) {
     tft.begin();
 #endif  
     emu_init();
+
     while (true) {
 #ifdef USB_HID
-        // Process usb
         tuh_task();
 #endif
-
         if (menuActive()) {
             uint16_t bClick = emu_DebounceLocalKeys();
             int action = handleMenu(bClick);

@@ -1204,6 +1204,27 @@ unsigned int emu_LoadFile(const char * filepath, void * buf, int size)
   return(filesize);
 }
 
+bool emu_SaveFile(const char * filepath, void * buf, int size)
+{
+  emu_printf("SaveFile...");
+  emu_printf(filepath);
+  if( !(f_open(&file, filepath, FA_CREATE_NEW | FA_WRITE)) )
+  {
+    unsigned int retval=0;
+    if( (f_write(&file, buf, size, &retval)) )
+    {
+      emu_printf("file write failed");
+    }
+    f_close(&file);
+  }
+  else
+  {
+    emu_printf("file open failed");
+    return false;
+  }
+  return true;
+}
+
 static FIL outfile; 
 
 static bool emu_writeConfig(void)

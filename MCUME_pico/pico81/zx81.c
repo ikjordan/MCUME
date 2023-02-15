@@ -39,6 +39,31 @@ struct { unsigned char R,G,B; } Palette[16] = {
   { 255, 255, 255}
 };
 
+/* the ZX81 char is used to index into this, to give the ascii.
+ * awkward chars are mapped to '_' (underscore), and the ZX81's
+ * all-caps is converted to lowercase.
+ * The mapping is also valid for the ZX80 for alphanumerics.
+ * WARNING: this only covers 0<=char<=63!
+ */
+static char zx2ascii[64]={
+/*  0- 9 */ ' ', '_', '_', '_', '_', '_', '_', '_', '_', '_',
+/* 10-19 */ '_', '\'','#', '$', ':', '?', '(', ')', '>', '<',
+/* 20-29 */ '=', '+', '-', '*', '/', ';', ',', '.', '0', '1',
+/* 30-39 */ '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
+/* 40-49 */ 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+/* 50-59 */ 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+/* 60-63 */ 'w', 'x', 'y', 'z'
+};
+
+static char ascii2zx[96]=
+  {
+   0, 0,11,12,13, 0, 0,11,16,17,23,21,26,22,27,24,
+  28,29,30,31,32,33,34,35,36,37,14,25,19,20,18,15,
+  23,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,
+  53,54,55,56,57,58,59,60,61,62,63,16,24,17,11,22,
+  11,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,
+  53,54,55,56,57,58,59,60,61,62,63,16,24,17,11, 0
+  };
 
 const byte map_qw[8][5] = {
     {25, 6,27,29,224},// vcxz<caps shift=Lshift>
@@ -385,28 +410,38 @@ void reset81()
   memset(mem+0x4000,0,0xc000);  
 }
 
+static unsigned char fname[256];
+
 void load_p(int a)
 {
+  unsigned char *ptr=mem+(a&32767),*dptr=fname;
+
   emu_printf("loading...");
-/*
-  int got_ascii_already=0;
-  if(zx80) {    
+  if(a<32768)
+  {
+    emu_printf("name provided");
+
+    // Try to open the name provided
+    memset(fname,0,sizeof(fname));
+    strcat(fname,"z81/");
+    dptr += strlen(fname);
+
+    do
+      *dptr++=zx2ascii[(*ptr)&63];
+    while((*ptr++)<128 && dptr<fname+sizeof(fname)-3);
+
+    /* add '.p' */
+    strcat(fname,".p");
   }
   else
   {
-    if(a>=32768)  
-    {
-      got_ascii_already=1;
-      emu_printf("got ascii");
-    } 
-    if(!got_ascii_already)
-    {
-    }
+    // Use value from menu
+    strcpy(fname, tapename);
   }
-*/    
-  emu_printf(tapename);
-  int size = emu_FileSize(tapename);
-  int f = emu_FileOpen(tapename, "r+b");  
+
+  emu_printf(fname);
+  int size = emu_FileSize(fname);
+  int f = emu_FileOpen(fname, "r+b");
   if ( !f ) {
     /* the partial snap will crash without a file, so reset */
     if(autoload)
@@ -424,7 +459,36 @@ void load_p(int a)
 
 void save_p(int a)
 {
-  
+  unsigned char *ptr=mem+a,*dptr=fname;
+  FILE *out;
+
+  if(zx80)
+  {
+      strcpy(fname,"zx80prog.p");
+  }
+  else
+  {
+    /* so the filename is at ptr, in the ZX81 char set, with the last char
+    * having bit 7 set. First, get that name in ASCII.
+    */
+    memset(fname,0,sizeof(fname));
+    strcat(fname,"z81/");
+    dptr += strlen(fname);
+
+    do
+      *dptr++=zx2ascii[(*ptr)&63];
+    while((*ptr++)<128 && dptr<fname+sizeof(fname)-3);
+
+    /* add '.p' */
+    strcat(fname,".p");
+  }
+  /* work out how much to write, and write it.
+  * we need to write from 0x4009 (0x4000 on ZX80) to E_LINE inclusive.
+  */
+  if(zx80)
+    emu_SaveFile(fname, &mem[0x4000], fetch2(16394)-0x4000);
+  else
+    emu_SaveFile(fname, &mem[0x4009], fetch2(16404)-0x4009);
 }
 
 
