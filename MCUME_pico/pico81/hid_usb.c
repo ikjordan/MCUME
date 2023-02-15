@@ -141,29 +141,66 @@ void readUsbKeyboard(void)
     int r = 0;
 
     hid_app_get_latest_keyboard_report(&report);
-  
-    reset();
-    if (report.keycode[0] != 1)
-    {
-        const unsigned char m = report.modifier;
-        
-        if (m & 0x22) press(0, 0); // Shift
 
-        for(unsigned int i = 0; i < 6; ++i)
+    const unsigned char m = report.modifier;
+    reset();
+
+    if (m & 0x22) press(0, 0); // Shift
+
+    for(unsigned int i = 0; i < 6; ++i)
+    {
+        const HidKey_t* k = findKey(report.keycode[i]);
+        if (k)
         {
-            const unsigned char hidKeyCode = report.keycode[i];
-        
-            const HidKey_t* k = findKey(hidKeyCode);
-            if (k)
+            for (uint32_t c = 0; c < k->contacts; ++c)
             {
-                for (uint32_t c = 0; c < k->contacts; ++c)
-                {
-                    const Contact_t* contact = &k->contact[c];
-                    press(contact->line, contact->key);
-                }
+                const Contact_t* contact = &k->contact[c];
+                press(contact->line, contact->key);
             }
         }
     }
+}
+
+int16_t keyboardToJoystick()
+{
+    hid_keyboard_report_t report;
+    int16_t result = 0;
+
+    hid_app_get_latest_keyboard_report(&report);
+
+    // 5, 6, 7, 8 or direction key emulates joystick
+    // Enter or 0 emulates joystick button
+    for(unsigned int i = 0; i < 6; ++i)
+    {
+        switch(report.keycode[i])
+        {
+            case HID_KEY_5:
+            case HID_KEY_ARROW_LEFT:
+                result |= MASK_JOY_LEFT;
+            break;
+
+            case HID_KEY_6:
+            case HID_KEY_ARROW_DOWN:
+                result |= MASK_JOY_DOWN;
+            break;
+
+            case HID_KEY_7:
+            case HID_KEY_ARROW_UP:
+                result |= MASK_JOY_UP;
+            break;
+
+            case HID_KEY_8:
+            case HID_KEY_ARROW_RIGHT:
+                result |= MASK_JOY_RIGHT;
+            break;
+
+            case HID_KEY_0:
+            case HID_KEY_ENTER:
+                result |= MASK_JOY_BTN;
+            break;
+        }
+    }
+    return result;
 }
 
 void injectKey(uint8_t code)

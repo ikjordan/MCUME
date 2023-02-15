@@ -444,6 +444,7 @@ int emu_ReadKeys(void)
 
 #ifdef USB_HID
   j1 |= readUsbJoystick(1);
+  j1 |= keyboardToJoystick();
 #endif
   // Second joystick
 #if INVY
