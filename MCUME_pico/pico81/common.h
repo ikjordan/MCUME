@@ -45,4 +45,5 @@ extern void do_interrupt();
 extern void reset81();
 extern void frame_pause(void);
 extern void bitbufBlit(unsigned char * buf, int liney);
+extern void blankScreen();
 

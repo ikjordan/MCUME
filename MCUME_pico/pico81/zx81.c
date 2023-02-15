@@ -237,11 +237,23 @@ void bitbufBlit(unsigned char * buf, int liney)
     buf += (ZX_VID_FULLWIDTH>>3);
   }
 }
+
+void blankScreen()
+{
+  emu_DrawVsync();
+  memset( XBuf, 0xFF, WIDTH>>3);
+
+  for(int y=0;y<HEIGHT;y++)
+  {
+    // Blank entire screen
+    emu_DrawLine1BPP(XBuf, 0, y, WIDTH, false);
+  }
+}
 #else
 void bitbufBlit(unsigned char * buf, int liney)
 {
   emu_DrawVsync();  
-  memset( XBuf, 1, WIDTH<<3 );
+  memset( XBuf, 1, WIDTH );
   int margin = (ZX_VID_MARGIN>>1);
   if (liney >= HEIGHT)
   {
@@ -276,6 +288,18 @@ void bitbufBlit(unsigned char * buf, int liney)
     }
     emu_DrawLine(&XBuf[0], WIDTH, HEIGHT, y);   
     buf += (ZX_VID_FULLWIDTH>>3);
+  }
+}
+
+void blankScreen()
+{
+  emu_DrawVsync();
+  memset( XBuf, 0xFF, WIDTH);
+
+  for(int y=0;y<HEIGHT;y++)
+  {
+    // Blank entire screen
+    emu_DrawLine(&XBuf[0], WIDTH, HEIGHT, y);
   }
 }
 #endif

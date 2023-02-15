@@ -267,7 +267,8 @@ void ExecZ80(void)
       {
         vsyncpend=1;
         vsynclen=1;      
-        goto postcopy;				/* skip the usual copying */
+        blankScreen();        /* Show a blank screen rather than*/
+        goto postcopy;        /* the buffer */
       }
   
       if(!vsyncpend)
