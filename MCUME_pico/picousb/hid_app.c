@@ -379,52 +379,49 @@ static void process_mouse_report(hid_mouse_report_t const * report)
 }
 
 //--------------------------------------------------------------------+
-// Generic Report
+// Generic Report - Some keyboards also handled here
 //--------------------------------------------------------------------+
 static void __not_in_flash_func(process_generic_report)(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
   tusb_hid_host_info_t* info = tuh_hid_get_info(dev_addr, instance);
-  
-  if (info == NULL)
-  {
-    printf("Couldn't find the host report info for dev_addr=%d instance=%d\r\n", dev_addr, instance);
-    return;
-  }
-  
   uint8_t const rpt_count = hid_info[instance].report_count;
   tuh_hid_report_info2_t* rpt_info_arr = hid_info[instance].report_info;
   tuh_hid_report_info2_t* rpt_info = NULL;
-  uint8_t rpt_id = 0;
 
-  if ( rpt_count == 1 && rpt_info_arr[0].report_id == 0)
+  if (info == NULL)
   {
-    // Simple report without report ID as 1st byte
-    rpt_info = &rpt_info_arr[0];
-  }else
-  {
-    // Composite report, 1st byte is report ID, data starts from 2nd byte
-    rpt_id = report[0];
-
-    // Find report id in the array
-    for(uint8_t i=0; i<rpt_count; i++)
-    {
-      if (rpt_id == rpt_info_arr[i].report_id )
-      {
-        rpt_info = &rpt_info_arr[i];
-        break;
-      }
-    }
-
-    report++;
-    len--;
-  }
-
-  if (!rpt_info)
-  {
-    printf("Couldn't find the report info for this report !\r\n");
     return;
   }
 
+  uint8_t rpt_id = 0;
+
+  if (info->has_report_id)
+  {
+    // Find the report id
+    if ( rpt_count == 1 && rpt_info_arr[0].report_id == 0)
+    {
+      // Simple report without report ID as 1st byte
+      rpt_info = &rpt_info_arr[0];
+    }
+    else
+    {
+      // Composite report, 1st byte is report ID, data starts from 2nd byte
+      uint8_t const rpt_id = report[0];
+
+      // Find report id in the array
+      for(uint8_t i=0; i<rpt_count; i++)
+      {
+        if (rpt_id == rpt_info_arr[i].report_id )
+        {
+          rpt_info = &rpt_info_arr[i];
+          break;
+        }
+      }
+
+      report++;
+      len--;
+    }
+  }
   info->handler(info, report, len, rpt_id);
 }
 
